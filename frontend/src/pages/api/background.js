@@ -13,40 +13,73 @@ const MIME_MAP = {
 
 export default function handler(req, res) {
   try {
-    const bgDir = path.join(process.cwd(), "public", "background");
+    const candidateDirs = [
+      path.resolve(process.cwd(), "..", "background"),
+      path.resolve(process.cwd(), "background"),
+      path.resolve(process.cwd(), "public", "background"),
+      path.resolve(process.cwd(), "frontend", "public", "background"),
+    ];
 
-    if (!fs.existsSync(bgDir)) {
+    const uniqueDirs = Array.from(new Set(candidateDirs)).filter((dir) =>
+      fs.existsSync(dir)
+    );
+
+    if (uniqueDirs.length === 0) {
       return res.status(404).send("Background directory not found");
     }
 
-    const files = fs.readdirSync(bgDir);
+    const imageFiles = [];
 
-    // Collect all valid image files with their stats
-    const imageFiles = files
-      .filter((file) => {
-        const ext = path.extname(file).toLowerCase();
-        return Boolean(MIME_MAP[ext]);
-      })
-      .map((file) => {
-        const filePath = path.join(bgDir, file);
-        const stat = fs.statSync(filePath);
-        return {
-          file,
-          filePath,
-          ext: path.extname(file).toLowerCase(),
-          mtimeMs: stat.mtimeMs,
-          size: stat.size,
-          mtime: stat.mtime,
-        };
-      })
-      // Sort newest modified first
-      .sort((a, b) => b.mtimeMs - a.mtimeMs);
+    for (const dir of uniqueDirs) {
+      try {
+        const files = fs.readdirSync(dir);
+        for (const file of files) {
+          const ext = path.extname(file).toLowerCase();
+          if (MIME_MAP[ext]) {
+            const filePath = path.join(dir, file);
+            try {
+              const stat = fs.statSync(filePath);
+              if (stat.isFile()) {
+                imageFiles.push({
+                  file,
+                  filePath,
+                  ext,
+                  mtimeMs: stat.mtimeMs,
+                  size: stat.size,
+                  mtime: stat.mtime,
+                });
+              }
+            } catch {
+              // Ignore unreadable file
+            }
+          }
+        }
+      } catch {
+        // Ignore unreadable directory
+      }
+    }
+
+    // Sort newest modified first
+    imageFiles.sort((a, b) => b.mtimeMs - a.mtimeMs);
 
     if (imageFiles.length === 0) {
       return res.status(404).send("No image found in background directory");
     }
 
     const latest = imageFiles[0];
+
+    // Keep public/background in sync if available
+    try {
+      const publicBgDir = path.resolve(process.cwd(), "public", "background");
+      if (fs.existsSync(publicBgDir) && path.dirname(latest.filePath) !== publicBgDir) {
+        const dest = path.join(publicBgDir, latest.file);
+        if (!fs.existsSync(dest) || fs.statSync(dest).mtimeMs < latest.mtimeMs) {
+          fs.copyFileSync(latest.filePath, dest);
+        }
+      }
+    } catch {
+      // Non-critical sync
+    }
 
     // Info endpoint for real-time polling / hot reload
     if (req.query.info) {
