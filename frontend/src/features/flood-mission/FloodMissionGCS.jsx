@@ -5,7 +5,6 @@ import Head from "next/head";
 import {
   Play,
   ShieldAlert,
-  Battery,
   AlertTriangle,
   X
 } from "lucide-react";
@@ -55,7 +54,7 @@ export default function FloodMissionGCS() {
 
   const battery = Number.isFinite(mission?.state?.battery_percent)
     ? `${Math.round(mission.state.battery_percent)}%`
-    : "98%";
+    : "--";
 
   // Initial check for existing active mission
   useEffect(() => {
@@ -230,99 +229,103 @@ export default function FloodMissionGCS() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [expandedCamera]);
 
+  // Real-time automatic background wallpaper hot-reload
+  const [bgSrc, setBgSrc] = useState("/api/background");
+  const lastVersionRef = useRef(null);
+
+  useEffect(() => {
+    let active = true;
+    const checkBg = async () => {
+      try {
+        const res = await fetch(`/api/background?info=1&_t=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (active && data.version) {
+            if (lastVersionRef.current === null) {
+              lastVersionRef.current = data.version;
+            } else if (lastVersionRef.current !== data.version) {
+              lastVersionRef.current = data.version;
+              setBgSrc(`/api/background?v=${data.version}`);
+            }
+          }
+        }
+      } catch {}
+    };
+
+    checkBg();
+    const interval = setInterval(checkBg, 1500);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
-    <main className="gcs-root-frame">
+    <>
       <Head>
         <title>PHOENIX GCS · Autonomous Mission Control</title>
         <meta
           name="description"
           content="Phoenix GCS autonomous indoor search, mapping and survivor localization ground control station."
         />
+        <link rel="preload" as="image" href="/api/background" />
       </Head>
 
-      {/* 1. Header Navigation & Tactical Master Controls */}
-      <header className="gcs-top-bar h-12 flex items-center justify-between px-4 bg-[#0C1017] border-b border-white/5 z-40 select-none" aria-label="GCS Header">
+      {/* Fixed Hardware-Accelerated Wallpaper Layer: Sits above body (z-0), beneath UI (z-10) */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
+        aria-hidden="true"
+      >
+        <img
+          src={bgSrc}
+          alt="Mission Control Background"
+          className="w-full h-full object-cover object-center block"
+          loading="eager"
+        />
+      </div>
+
+      <main className="gcs-root-frame p-2 gap-2 relative z-10">
+        {/* 1. Header Navigation & Tactical Master Controls */}
+      <header className="gcs-top-bar h-12 flex items-center justify-between px-2 bg-transparent border-none shadow-none z-40 select-none" aria-label="GCS Header">
         {/* Left Side Group */}
         <div className="flex items-center gap-3">
           {/* Phoenix GCS Branding */}
-          <div className="brand-cluster flex items-center gap-2">
-            <img className="phoenix-emblem w-7 h-7 object-contain" src="/phoenix-bird.png" alt="Phoenix bird emblem" />
-            <div className="phoenix-wordmark flex flex-col leading-none">
-              <strong className="text-sm font-extrabold tracking-wider text-white">PHOENIX <span className="text-amber-500">GCS</span></strong>
-              <small className="text-[8px] font-bold tracking-widest text-slate-400">GROUND CONTROL STATION</small>
-            </div>
-          </div>
-
-          {/* Hairline Divider */}
-          <div className="h-4 w-[1px] bg-white/10" />
-
-          {/* Drone Callsign */}
-          <div className="flex items-center gap-1.5 font-mono">
-            <span className="text-[10px] uppercase tracking-widest text-slate-400">AIRCRAFT</span>
-            <span className="text-xs font-semibold tracking-wider text-slate-200">DHRUVA-01</span>
-          </div>
-
-          {/* Hairline Divider */}
-          <div className="h-4 w-[1px] bg-white/10" />
-
-          {/* Status Pills: Local RF Link & Battery */}
-          <div className="flex items-center gap-2">
-            {/* Local RF Link Status Pill */}
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-[#111722] border border-white/5 text-[10px] font-mono">
-              <span className={`w-1.5 h-1.5 rounded-full ${active ? "bg-emerald-500" : "bg-slate-500"}`} />
-              <span className="text-slate-400">RF LINK</span>
-              <span className={active ? "text-emerald-400 font-medium" : "text-slate-400"}>
-                {active ? "ONLINE" : "STANDBY"}
-              </span>
-            </div>
-
-            {/* Battery Status Pill */}
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-sm bg-[#111722] border border-white/5 text-[10px] font-mono">
-              <Battery size={11} className={active ? "text-cyan-400" : "text-slate-400"} />
-              <span className="text-slate-400">BATT</span>
-              <span className="text-slate-200 font-medium">{battery}</span>
+          <div className="brand-cluster flex items-center gap-2.5">
+            <img className="phoenix-emblem w-8 h-8 object-contain" src="/phoenix-bird.png" alt="Phoenix bird emblem" />
+            <div className="phoenix-wordmark flex items-center leading-none">
+              <strong className="text-[17px] font-extrabold tracking-wider text-[#F4F4F5]">PHOENIX <span className="text-[#F97316]">GCS</span></strong>
             </div>
           </div>
         </div>
 
-        {/* Center-Right: Tactical Trigger & Partner Logo */}
+        {/* Center-Right: Solid High-Contrast Hardware Trigger */}
         <div className="flex items-center gap-3">
           {active ? (
             <button
               type="button"
-              className="h-8 px-4 rounded-sm bg-red-500/15 border border-red-500/60 text-red-400 uppercase tracking-wider text-xs font-mono font-semibold hover:bg-red-500 hover:text-white transition-colors inline-flex items-center gap-2"
+              className="bg-[#EF4444] hover:bg-[#DC2626] text-white font-sans font-semibold text-xs px-4 h-8 rounded-[3px] shadow-none border-none transition-colors inline-flex items-center gap-2 cursor-pointer"
               onClick={abortMission}
               aria-label="Emergency Stop and Abort Mission"
             >
-              <ShieldAlert size={14} />
+              <ShieldAlert size={14} className="fill-current text-white" />
               <span>EMERGENCY ABORT</span>
             </button>
           ) : (
             <button
               type="button"
-              className="h-8 px-4 rounded-sm bg-amber-500/15 border border-amber-500/60 text-amber-400 uppercase tracking-wider text-xs font-mono font-semibold hover:bg-amber-500 hover:text-black transition-colors inline-flex items-center gap-2"
+              className="bg-[#F97316] hover:bg-[#EA580C] text-[#09090B] font-sans font-semibold text-xs px-4 h-8 rounded-[3px] shadow-none border-none transition-colors inline-flex items-center gap-2 cursor-pointer"
               onClick={startMission}
               disabled={busy}
-              aria-label="Arm and Start Autonomous Mission"
+              aria-label="Start Mission"
             >
               {busy ? (
-                <span className="w-3 h-3 rounded-full border-2 border-amber-400/30 border-t-amber-400 animate-spin" />
+                <span className="w-3 h-3 rounded-full border-2 border-[#09090B]/30 border-t-[#09090B] animate-spin" />
               ) : (
-                <Play size={12} className="fill-current" />
+                <Play size={12} className="fill-current text-[#09090B]" />
               )}
-              <span>{busy ? "INITIALIZING..." : "ARM & START MISSION"}</span>
+              <span>{busy ? "INITIALIZING..." : "START MISSION"}</span>
             </button>
           )}
-
-          {/* Hairline Divider */}
-          <div className="h-4 w-[1px] bg-white/10" />
-
-          {/* Dhruva Banner Logo */}
-          <img
-            className="h-7 w-auto max-w-[170px] object-contain opacity-90 hover:opacity-100 transition-opacity"
-            src="/dhruva-logo.png"
-            alt="DHRUVA - Disaster Handling, Rescue & Unmanned Vigilance Aircraft"
-          />
         </div>
       </header>
 
@@ -396,5 +399,6 @@ export default function FloodMissionGCS() {
         status={mission?.status || "idle"}
       />
     </main>
-  );
+  </>
+);
 }

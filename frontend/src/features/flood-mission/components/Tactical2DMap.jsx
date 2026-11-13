@@ -134,123 +134,120 @@ export default function Tactical2DMap({
   const rows = Array.from({ length: 15 }, (_, i) => String.fromCharCode(65 + i));
 
   return (
-    <div className="tactical-map-container" aria-label="Tactical 2D Indoor SLAM Map">
-      {/* 1. Minimal Top Panel Header (32px / h-8) */}
-      <div className="map-toolbar h-8 flex items-center justify-between px-3 bg-[#0E131C] border-b border-white/[0.06] select-none">
-        <div className="flex items-center gap-2">
+    <div className="tactical-map-container bg-[#0a0b10]/40 backdrop-blur-xl border border-white/10 rounded-[4px] overflow-hidden" aria-label="Tactical 2D Indoor SLAM Map">
+      {/* 1. Header Toolbar with Integrated Inline Segmented Controls */}
+      <div className="map-toolbar h-8 flex items-center justify-between px-3 bg-[#0a0b10]/60 border-b border-white/10 select-none">
+        <div className="flex items-center gap-2 shrink-0">
           <span
             className={`w-1.5 h-1.5 rounded-full shrink-0 ${
               active
-                ? "bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.6)] animate-pulse"
-                : "bg-slate-500"
+                ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)] animate-pulse"
+                : "bg-[#52525B]"
             }`}
           />
-          <strong className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-200">
+          <strong className="text-xs font-sans font-semibold uppercase tracking-[0.06em] text-[#F4F4F5]">
             2D INDOOR SLAM MAP
           </strong>
         </div>
 
-        <div className="flex items-center gap-2 font-mono text-xs">
-          <span className="text-[10px] uppercase tracking-wider text-slate-400">POS:</span>
-          <span className="text-amber-400 font-medium tabular-nums">
-            {getGridBox(pose?.x, pose?.y)}
-          </span>
-        </div>
-      </div>
+        {/* Inline Compact Action & Layer Controls */}
+        <div className="flex items-center gap-2 select-none">
+          {/* Layer Toggles Segmented Group */}
+          <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md p-0.5 rounded-[4px] border border-white/10">
+            <button
+              type="button"
+              className={`h-6 px-3 flex items-center gap-1.5 text-xs font-sans font-semibold rounded-[3px] transition-all border cursor-pointer ${
+                showGrid
+                  ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_8px_rgba(6,182,212,0.25)]"
+                  : "bg-transparent text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 border-transparent"
+              }`}
+              onClick={() => setShowGrid(!showGrid)}
+              title="Toggle Modular Grid Overlay"
+            >
+              <Grid size={12} className={showGrid ? "text-cyan-400" : "text-[#A1A1AA]"} />
+              <span>Grid</span>
+            </button>
 
-      {/* Map Canvas Wrapper */}
-      <div className="map-canvas-wrapper relative w-full h-full min-h-0 bg-[#07090E] overflow-hidden">
-        {/* Floating Map Controls (Top-Right Glassmorphic Pill) */}
-        <div className="absolute top-3 right-3 z-20 bg-[#0C1017]/85 backdrop-blur-md border border-white/10 rounded-sm p-1 flex items-center gap-1 shadow-lg select-none">
-          {/* Layer Toggles */}
-          <button
-            type="button"
-            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-mono font-semibold rounded-[2px] transition-colors border-0 cursor-pointer ${
-              showGrid
-                ? "bg-cyan-500/15 text-cyan-300"
-                : "text-slate-400 hover:text-slate-200 bg-transparent"
-            }`}
-            onClick={() => setShowGrid(!showGrid)}
-            title="Toggle Modular Grid Overlay"
-          >
-            <Grid size={11} />
-            <span>GRID</span>
-          </button>
+            <button
+              type="button"
+              className={`h-6 px-3 flex items-center gap-1.5 text-xs font-sans font-semibold rounded-[3px] transition-all border cursor-pointer ${
+                showStructures
+                  ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_8px_rgba(6,182,212,0.25)]"
+                  : "bg-transparent text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 border-transparent"
+              }`}
+              onClick={() => setShowStructures(!showStructures)}
+              title="Toggle Structural Rooms"
+            >
+              <Square size={12} className={showStructures ? "text-cyan-400" : "text-[#A1A1AA]"} />
+              <span>Rooms</span>
+            </button>
 
-          <button
-            type="button"
-            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-mono font-semibold rounded-[2px] transition-colors border-0 cursor-pointer ${
-              showStructures
-                ? "bg-cyan-500/15 text-cyan-300"
-                : "text-slate-400 hover:text-slate-200 bg-transparent"
-            }`}
-            onClick={() => setShowStructures(!showStructures)}
-            title="Toggle Structural Rooms"
-          >
-            <Square size={11} />
-            <span>ROOMS</span>
-          </button>
-
-          <button
-            type="button"
-            className={`flex items-center gap-1 px-2 py-1 text-[10px] font-mono font-semibold rounded-[2px] transition-colors border-0 cursor-pointer ${
-              showTrail
-                ? "bg-cyan-500/15 text-cyan-300"
-                : "text-slate-400 hover:text-slate-200 bg-transparent"
-            }`}
-            onClick={() => setShowTrail(!showTrail)}
-            title="Toggle Trajectory Trail"
-          >
-            <Activity size={11} />
-            <span>PATH</span>
-          </button>
+            <button
+              type="button"
+              className={`h-6 px-3 flex items-center gap-1.5 text-xs font-sans font-semibold rounded-[3px] transition-all border cursor-pointer ${
+                showTrail
+                  ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_8px_rgba(6,182,212,0.25)]"
+                  : "bg-transparent text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 border-transparent"
+              }`}
+              onClick={() => setShowTrail(!showTrail)}
+              title="Toggle Trajectory Trail"
+            >
+              <Activity size={12} className={showTrail ? "text-cyan-400" : "text-[#A1A1AA]"} />
+              <span>Path</span>
+            </button>
+          </div>
 
           {/* Divider */}
-          <div className="h-3.5 w-[1px] bg-white/10 mx-0.5" />
+          <div className="h-3.5 w-[1px] bg-white/10" />
 
-          {/* Zoom Buttons */}
-          <button
-            type="button"
-            className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-[2px] transition-colors border-0 bg-transparent cursor-pointer"
-            onClick={() => setZoom((z) => Math.min(2.0, z + 0.2))}
-            title="Zoom In"
-          >
-            <ZoomIn size={12} />
-          </button>
+          {/* Zoom Buttons Group */}
+          <div className="flex items-center gap-0.5 bg-black/60 backdrop-blur-md p-0.5 rounded-[4px] border border-white/10">
+            <button
+              type="button"
+              className="w-6 h-6 flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 rounded-[2px] transition-colors border-0 bg-transparent cursor-pointer"
+              onClick={() => setZoom((z) => Math.min(2.0, z + 0.2))}
+              title="Zoom In"
+            >
+              <ZoomIn size={12} />
+            </button>
 
-          <button
-            type="button"
-            className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-[2px] transition-colors border-0 bg-transparent cursor-pointer"
-            onClick={() => setZoom((z) => Math.max(0.8, z - 0.2))}
-            title="Zoom Out"
-          >
-            <ZoomOut size={12} />
-          </button>
+            <button
+              type="button"
+              className="w-6 h-6 flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 rounded-[2px] transition-colors border-0 bg-transparent cursor-pointer"
+              onClick={() => setZoom((z) => Math.max(0.8, z - 0.2))}
+              title="Zoom Out"
+            >
+              <ZoomOut size={12} />
+            </button>
 
-          <button
-            type="button"
-            className="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-200 hover:bg-white/5 rounded-[2px] transition-colors border-0 bg-transparent cursor-pointer"
-            onClick={() => setZoom(1)}
-            title="Reset Scale"
-          >
-            <RotateCcw size={12} />
-          </button>
+            <button
+              type="button"
+              className="w-6 h-6 flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 rounded-[2px] transition-colors border-0 bg-transparent cursor-pointer"
+              onClick={() => setZoom(1)}
+              title="Reset Scale"
+            >
+              <RotateCcw size={12} />
+            </button>
+          </div>
 
           {/* Divider */}
-          <div className="h-3.5 w-[1px] bg-white/10 mx-0.5" />
+          <div className="h-3.5 w-[1px] bg-white/10" />
 
           {/* Export Tactical Rescue Map */}
           <button
             type="button"
-            className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono font-semibold tracking-wider text-emerald-400 bg-emerald-500/15 hover:bg-emerald-500 hover:text-black border border-emerald-500/30 rounded-[2px] transition-colors cursor-pointer"
+            className="h-6 flex items-center gap-1.5 px-2.5 text-xs font-sans font-medium text-[#E4E4E7] bg-black/60 hover:bg-white/15 border border-white/10 rounded-[3px] transition-colors cursor-pointer"
             onClick={handleExportMap}
             title="Export 2D Map for Ground Rescue Teams"
           >
-            <Download size={11} />
-            <span>EXPORT RESCUE MAP</span>
+            <Download size={12} />
+            <span>Export Map</span>
           </button>
         </div>
+      </div>
 
+      {/* Map Canvas Wrapper */}
+      <div className="map-canvas-wrapper relative w-full h-full min-h-0 bg-transparent overflow-hidden">
         {/* SVG Tactical Map Canvas */}
         <svg
           ref={svgRef}
@@ -263,17 +260,14 @@ export default function Tactical2DMap({
             transition: "transform 0.15s ease-out",
           }}
         >
-          {/* Deep Canvas Background */}
-          <rect width={viewBoxWidth} height={viewBoxHeight} fill="#07090E" />
-
-          {/* Arena Outer Boundary */}
+          {/* Translucent Arena Boundary (replaces opaque canvas) */}
           <rect
             x={padding}
             y={padding}
             width={innerWidth}
             height={innerHeight}
-            fill="#0A0E14"
-            stroke="rgba(255, 255, 255, 0.08)"
+            fill="rgba(5, 7, 12, 0.15)"
+            stroke="rgba(255, 255, 255, 0.22)"
             strokeWidth="1"
           />
 
@@ -302,9 +296,9 @@ export default function Tactical2DMap({
                       x={x + innerWidth / 30}
                       y={padding - 10}
                       textAnchor="middle"
-                      fill="#64748b"
-                      fontSize="8.5"
-                      fontFamily="ui-monospace, monospace"
+                      fill="#71717A"
+                      fontSize="10"
+                      fontFamily="var(--font-mono), monospace"
                       fontWeight="600"
                     >
                       {colName}
@@ -335,9 +329,9 @@ export default function Tactical2DMap({
                       x={padding - 12}
                       y={y + innerHeight / 30 + 3}
                       textAnchor="middle"
-                      fill="#64748b"
-                      fontSize="8.5"
-                      fontFamily="ui-monospace, monospace"
+                      fill="#71717A"
+                      fontSize="10"
+                      fontFamily="var(--font-mono), monospace"
                       fontWeight="600"
                     >
                       {rowName}
@@ -364,8 +358,8 @@ export default function Tactical2DMap({
                       y={topLeft.y}
                       width={width}
                       height={height}
-                      fill="rgba(15, 23, 42, 0.6)"
-                      stroke="rgba(56, 189, 248, 0.2)"
+                      fill="rgba(14, 18, 26, 0.55)"
+                      stroke="rgba(255, 255, 255, 0.30)"
                       strokeWidth="1"
                       rx="2"
                     />
@@ -373,11 +367,11 @@ export default function Tactical2DMap({
                       x={topLeft.x + width / 2}
                       y={topLeft.y + height / 2 + 3}
                       textAnchor="middle"
-                      fill="#94a3b8"
-                      fontSize="9"
+                      fill="#A1A1AA"
+                      fontSize="11"
                       fontWeight="600"
                       letterSpacing="0.08em"
-                      fontFamily="ui-monospace, monospace"
+                      fontFamily="var(--font-sans), sans-serif"
                     >
                       {obs.label}
                     </text>
@@ -393,35 +387,36 @@ export default function Tactical2DMap({
             return (
               <g className="entry-pad-group" transform={`translate(${entrySvg.x}, ${entrySvg.y})`}>
                 <rect
-                  x="-12"
-                  y="-12"
-                  width="24"
-                  height="24"
-                  fill="rgba(16, 185, 129, 0.1)"
-                  stroke="rgba(16, 185, 129, 0.4)"
+                  x="-13"
+                  y="-13"
+                  width="26"
+                  height="26"
+                  fill="rgba(24, 28, 40, 0.75)"
+                  stroke="rgba(255, 255, 255, 0.3)"
                   strokeWidth="1"
+                  strokeDasharray="3 2"
                   rx="2"
                 />
                 <text
                   x="0"
                   y="4"
                   textAnchor="middle"
-                  fill="#34d399"
-                  fontSize="8.5"
+                  fill="#A1A1AA"
+                  fontSize="10.5"
                   fontWeight="bold"
-                  fontFamily="ui-monospace, monospace"
+                  fontFamily="var(--font-mono), monospace"
                 >
                   H
                 </text>
                 <text
                   x="0"
-                  y="22"
+                  y="26"
                   textAnchor="middle"
-                  fill="#94a3b8"
-                  fontSize="7.5"
+                  fill="#71717A"
+                  fontSize="9.5"
                   fontWeight="600"
-                  letterSpacing="0.06em"
-                  fontFamily="ui-monospace, monospace"
+                  letterSpacing="0.08em"
+                  fontFamily="var(--font-sans), sans-serif"
                 >
                   ENTRY/EXIT
                 </text>
@@ -434,7 +429,7 @@ export default function Tactical2DMap({
             <polyline
               points={trailPointsString}
               fill="none"
-              stroke="#06b6d4"
+              stroke="#06B6D4"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -462,7 +457,7 @@ export default function Tactical2DMap({
                     <circle
                       r="14"
                       fill="none"
-                      stroke="#38bdf8"
+                      stroke="#06B6D4"
                       strokeWidth="1.5"
                       strokeDasharray="3,2"
                     />
@@ -471,7 +466,7 @@ export default function Tactical2DMap({
                   {/* Survivor Badge Pin */}
                   <circle
                     r="8"
-                    fill="#10b981"
+                    fill="#10B981"
                     stroke="#ffffff"
                     strokeWidth="1.2"
                   />
@@ -479,10 +474,10 @@ export default function Tactical2DMap({
                     x="0"
                     y="3"
                     textAnchor="middle"
-                    fill="#042f2e"
-                    fontSize="8.5"
+                    fill="#042F2E"
+                    fontSize="9.5"
                     fontWeight="800"
-                    fontFamily="ui-monospace, monospace"
+                    fontFamily="var(--font-mono), monospace"
                   >
                     {index + 1}
                   </text>
@@ -492,21 +487,21 @@ export default function Tactical2DMap({
                     <rect
                       x="0"
                       y="-10"
-                      width="42"
-                      height="15"
+                      width="46"
+                      height="16"
                       rx="2"
-                      fill="#0C1017"
-                      stroke="rgba(255, 255, 255, 0.12)"
+                      fill="#111113"
+                      stroke="#222227"
                       strokeWidth="1"
                     />
                     <text
-                      x="21"
-                      y="1"
+                      x="23"
+                      y="1.5"
                       textAnchor="middle"
-                      fill="#34d399"
-                      fontSize="8"
+                      fill="#10B981"
+                      fontSize="9.5"
                       fontWeight="bold"
-                      fontFamily="ui-monospace, monospace"
+                      fontFamily="var(--font-mono), monospace"
                     >
                       {gridTag}
                     </text>
@@ -521,41 +516,41 @@ export default function Tactical2DMap({
             {/* Rotated Drone Body */}
             <g transform={`rotate(${headingDeg})`}>
               {/* Quad Arms */}
-              <line x1="-9" y1="-9" x2="9" y2="9" stroke="#cbd5e1" strokeWidth="1.8" strokeLinecap="round" />
-              <line x1="9" y1="-9" x2="-9" y2="9" stroke="#cbd5e1" strokeWidth="1.8" strokeLinecap="round" />
+              <line x1="-9" y1="-9" x2="9" y2="9" stroke="#71717A" strokeWidth="1.8" strokeLinecap="round" />
+              <line x1="9" y1="-9" x2="-9" y2="9" stroke="#71717A" strokeWidth="1.8" strokeLinecap="round" />
 
               {/* Rotors */}
-              <circle cx="-9" cy="-9" r="3" fill="#f59e0b" stroke="#ffffff" strokeWidth="0.8" />
-              <circle cx="9" cy="-9" r="3" fill="#f59e0b" stroke="#ffffff" strokeWidth="0.8" />
-              <circle cx="-9" cy="9" r="3" fill="#64748b" stroke="#ffffff" strokeWidth="0.8" />
-              <circle cx="9" cy="9" r="3" fill="#64748b" stroke="#ffffff" strokeWidth="0.8" />
+              <circle cx="-9" cy="-9" r="3" fill="#F97316" stroke="#ffffff" strokeWidth="0.8" />
+              <circle cx="9" cy="-9" r="3" fill="#F97316" stroke="#ffffff" strokeWidth="0.8" />
+              <circle cx="-9" cy="9" r="3" fill="#3F3F46" stroke="#ffffff" strokeWidth="0.8" />
+              <circle cx="9" cy="9" r="3" fill="#3F3F46" stroke="#ffffff" strokeWidth="0.8" />
 
               {/* Drone Core */}
-              <circle cx="0" cy="0" r="4" fill="#f59e0b" stroke="#ffffff" strokeWidth="1" />
+              <circle cx="0" cy="0" r="4" fill="#F97316" stroke="#ffffff" strokeWidth="1" />
 
               {/* Heading Direction Nose */}
-              <polygon points="0,-14 3,-7 -3,-7" fill="#f59e0b" />
+              <polygon points="0,-14 3,-7 -3,-7" fill="#F97316" />
             </g>
 
-            {/* Drone Position Readout */}
-            <g transform="translate(15, 14)">
+            {/* Drone Position Readout - Offset to top-right of drone to prevent overlap */}
+            <g transform="translate(16, -16)">
               <rect
                 x="0"
-                y="-9"
-                width="72"
-                height="14"
+                y="-10"
+                width="78"
+                height="16"
                 rx="2"
-                fill="#0C1017"
-                stroke="rgba(255, 255, 255, 0.1)"
+                fill="#111113"
+                stroke="#222227"
                 strokeWidth="0.8"
               />
               <text
-                x="4"
-                y="1"
-                fill="#cbd5e1"
-                fontSize="7.5"
+                x="5"
+                y="1.5"
+                fill="#F4F4F5"
+                fontSize="8.5"
                 fontWeight="bold"
-                fontFamily="ui-monospace, monospace"
+                fontFamily="var(--font-mono), monospace"
               >
                 {pose?.x ? pose.x.toFixed(1) : "0.0"}, {pose?.y ? pose.y.toFixed(1) : "0.0"}m
               </text>
@@ -564,27 +559,23 @@ export default function Tactical2DMap({
         </svg>
 
         {/* 3. Floating Map Legend (Bottom-Left Translucent Overlay) */}
-        <div className="absolute bottom-3 left-3 z-20 bg-black/50 backdrop-blur-sm px-2.5 py-1 text-[10px] font-mono text-slate-400 rounded-sm flex items-center gap-3 select-none pointer-events-none">
+        <div className="absolute bottom-3 left-3 z-20 bg-black/65 backdrop-blur-md border border-white/10 px-3 py-1.5 text-xs font-sans text-[#A1A1AA] rounded-[3px] flex items-center gap-3 select-none pointer-events-none">
           <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#F97316] shrink-0" />
             <span>Drone</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
             <span>Survivor</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-[1px] bg-slate-900 border border-sky-400/30 shrink-0" />
+            <span className="w-2 h-2 rounded-[1px] bg-black/60 border border-white/20 shrink-0" />
             <span>Room</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-[2px] bg-cyan-400 shrink-0" />
             <span>Flight Path</span>
           </div>
-          <div className="h-3 w-[1px] bg-white/10" />
-          <span className="text-[9px] text-slate-400 tracking-wider uppercase">
-            GRID: 2m × 2m MODULAR
-          </span>
         </div>
       </div>
     </div>

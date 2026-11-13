@@ -5,46 +5,51 @@
    ========================================================================== */
 
 :root {
-  /* Surface System: Deep Obsidian & Tactical Panel Layering */
-  --gcs-bg: #07090E;
-  --gcs-panel: #0C1017;
-  --gcs-panel-card: #111722;
-  --gcs-surface-hover: #161E2C;
+  /* Translucent Surface System: Pure Carbon-Zinc with High-Clarity Glass */
+  --gcs-bg: #09090B;
+  --gcs-panel: rgba(10, 11, 16, 0.35);
+  --gcs-panel-header: rgba(10, 11, 16, 0.60);
+  --gcs-panel-card: rgba(15, 17, 24, 0.45);
+  --gcs-surface-hover: rgba(39, 42, 52, 0.70);
   
   /* Hairline Borders */
-  --gcs-border: rgba(255, 255, 255, 0.06);
-  --gcs-border-subtle: rgba(255, 255, 255, 0.03);
-  --gcs-border-focus: rgba(255, 255, 255, 0.14);
+  --gcs-border: rgba(255, 255, 255, 0.10);
+  --gcs-border-subtle: rgba(255, 255, 255, 0.06);
+  --gcs-border-focus: rgba(255, 255, 255, 0.25);
   
-  /* Semantic State Accents Only */
-  --gcs-amber: #F59E0B;
-  --gcs-amber-hover: #D97706;
+  /* Semantic State Accents */
+  --gcs-amber: #F97316;
+  --gcs-amber-hover: #EA580C;
   --gcs-cyan: #06B6D4;
   --gcs-green: #10B981;
   --gcs-red: #EF4444;
   --gcs-red-hover: #DC2626;
-  --gcs-slate: #64748B;
+  --gcs-slate: #A1A1AA;
   
   /* Neutral Typography Hierarchy */
-  --gcs-text-primary: #F1F5F9;
-  --gcs-text-secondary: #94A3B8;
-  --gcs-text-muted: #64748B;
+  --gcs-text-primary: #F4F4F5;
+  --gcs-text-secondary: #A1A1AA;
+  --gcs-text-muted: #A1A1AA;
   
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-mono: var(--font-mono), "JetBrains Mono", "Geist Mono", ui-monospace, monospace;
 }
 
 /* 1. Single-Page Window Layout */
 .gcs-root-frame {
   position: relative;
+  z-index: 10;
   width: 100vw;
   height: 100dvh;
   min-height: 560px;
   overflow: hidden;
-  background-color: var(--gcs-bg);
+  background: transparent;
   color: var(--gcs-text-primary);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   display: grid;
-  grid-template-rows: 48px 1fr 36px;
+  grid-template-rows: 48px 1fr 48px;
+  padding: 8px;
+  gap: 8px;
+  box-sizing: border-box;
   user-select: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -71,9 +76,9 @@
   align-items: center;
   justify-content: space-between;
   height: 48px;
-  padding: 0 16px;
-  background: var(--gcs-panel);
-  border-bottom: 1px solid var(--gcs-border);
+  padding: 0 8px;
+  background: transparent;
+  border: none;
   z-index: 40;
   box-sizing: border-box;
 }
@@ -85,35 +90,26 @@
 }
 
 .phoenix-emblem {
-  width: 38px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
 }
 
 .phoenix-wordmark {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
 }
 
 .phoenix-wordmark strong {
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  font-size: 17px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
   color: #ffffff;
   line-height: 1;
 }
 
 .phoenix-wordmark strong span {
   color: var(--gcs-amber);
-}
-
-.phoenix-wordmark small {
-  font-size: 8.5px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--gcs-text-muted);
-  line-height: 1;
 }
 
 /* Master Action Button - Tactical Amber for Primary Action */
@@ -140,7 +136,7 @@
 
 .btn-start-mission {
   background: var(--gcs-amber);
-  color: #07090E;
+  color: #09090B;
   border-color: rgba(245, 158, 11, 0.4);
 }
 
@@ -199,7 +195,7 @@
   display: grid;
   grid-template-columns: 460px 1fr;
   gap: 8px;
-  padding: 8px;
+  padding: 0;
   min-height: 0;
   height: 100%;
   overflow: hidden;
@@ -235,9 +231,12 @@
   flex: 1 1 58%;
   min-height: 0;
   background: var(--gcs-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--gcs-border);
   border-radius: 4px;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .camera-card-header {
@@ -246,7 +245,7 @@
   justify-content: space-between;
   height: 32px;
   padding: 0 10px;
-  background: #0E131C;
+  background: var(--gcs-panel-header);
   border-bottom: 1px solid var(--gcs-border);
   box-sizing: border-box;
 }
@@ -335,7 +334,7 @@
   width: 100%;
   height: 100%;
   min-height: 0;
-  background: #05070A;
+  background: rgba(0, 0, 0, 0.25);
   overflow: hidden;
 }
 
@@ -537,9 +536,12 @@
   flex: 0 0 auto;
   min-height: 0;
   background: var(--gcs-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--gcs-border);
   border-radius: 4px;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .triage-panel-header {
@@ -548,7 +550,7 @@
   justify-content: space-between;
   height: 32px;
   padding: 0 10px;
-  background: #0E131C;
+  background: var(--gcs-panel-header);
   border-bottom: 1px solid var(--gcs-border);
   box-sizing: border-box;
 }
@@ -556,8 +558,8 @@
 .manifest-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1px;
-  background: rgba(255, 255, 255, 0.04);
+  gap: 6px;
+  background: transparent;
   flex: 1 1 auto;
   min-height: 0;
   box-sizing: border-box;
@@ -574,9 +576,12 @@
   height: 100%;
   min-height: 0;
   background: var(--gcs-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--gcs-border);
   border-radius: 4px;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .map-toolbar {
@@ -585,7 +590,7 @@
   justify-content: space-between;
   height: 32px;
   padding: 0 10px;
-  background: #0E131C;
+  background: var(--gcs-panel-header);
   border-bottom: 1px solid var(--gcs-border);
   box-sizing: border-box;
   z-index: 10;
@@ -596,7 +601,7 @@
   width: 100%;
   height: 100%;
   min-height: 0;
-  background: #07090E;
+  background: transparent;
   overflow: hidden;
 }
 
@@ -611,14 +616,19 @@
    ========================================================================== */
 
 .telemetry-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 36px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: stretch;
+  height: 48px;
   background: var(--gcs-panel);
-  border-top: 1px solid var(--gcs-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--gcs-border);
+  border-radius: 4px;
   box-sizing: border-box;
+  overflow: hidden;
   z-index: 40;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .telem-cell {

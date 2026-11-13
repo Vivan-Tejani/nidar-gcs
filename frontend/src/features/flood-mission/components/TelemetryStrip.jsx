@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
+import { Battery } from "lucide-react";
 
 export default function TelemetryStrip({
   phaseLabel = "STANDBY",
   simTime = 0,
   altitude = null,
-  survivorCount = 0,
   groundSpeed = null,
+  battery = "--",
   heading = "—",
   active = false,
 }) {
@@ -20,83 +21,88 @@ export default function TelemetryStrip({
 
   return (
     <footer
-      className="telemetry-bar h-9 flex items-center justify-between px-4 bg-[#0C1017] border-t border-white/5 select-none"
+      className="telemetry-bar h-12 grid grid-cols-6 items-stretch bg-[#0a0b10]/40 backdrop-blur-xl border border-white/10 rounded-[4px] overflow-hidden select-none w-full"
       aria-label="Flight Telemetry Dashboard"
     >
-      <div className="flex items-center gap-6">
-        {/* 1. FLIGHT PHASE */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-widest text-slate-400">FLIGHT PHASE</span>
-          <div className="flex items-center gap-1.5">
-            <span className={`w-1.5 h-1.5 rounded-full ${active ? "bg-amber-400" : "bg-slate-500"}`} />
-            <span className={`text-xs font-mono font-medium ${active ? "text-amber-400" : "text-slate-200"}`}>
-              {phaseLabel}
-            </span>
-          </div>
-        </div>
-
-        {/* Vertical Tick */}
-        <div className="h-3.5 w-[1px] bg-white/10" />
-
-        {/* 2. MISSION TIME */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-widest text-slate-400">MISSION TIME</span>
-          <div className="flex items-center gap-1">
-            <span className="text-xs font-mono font-medium text-slate-200">{formatTime(simTime)}</span>
-            <span className="text-[10px] font-mono text-slate-400">/ 30:00</span>
-          </div>
-        </div>
-
-        {/* Vertical Tick */}
-        <div className="h-3.5 w-[1px] bg-white/10" />
-
-        {/* 3. LASER ALTITUDE */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-widest text-slate-400">LASER ALTITUDE</span>
-          <span className="text-xs font-mono font-medium text-slate-200">
-            {altitude !== null && Number.isFinite(altitude) ? `${altitude.toFixed(1)} m` : "—"}
-          </span>
-        </div>
-
-        {/* Vertical Tick */}
-        <div className="h-3.5 w-[1px] bg-white/10" />
-
-        {/* 4. GROUND SPEED */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-widest text-slate-400">GROUND SPEED</span>
-          <span className="text-xs font-mono font-medium text-slate-200">
-            {active && Number.isFinite(groundSpeed) ? `${groundSpeed.toFixed(1)} m/s` : "0.0 m/s"}
-          </span>
-        </div>
-
-        {/* Vertical Tick */}
-        <div className="h-3.5 w-[1px] bg-white/10" />
-
-        {/* 5. HEADING (YAW) */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-widest text-slate-400">HEADING (YAW)</span>
-          <span className="text-xs font-mono font-medium text-slate-200">{heading}</span>
-        </div>
-
-        {/* Vertical Tick */}
-        <div className="h-3.5 w-[1px] bg-white/10" />
-
-        {/* 6. SURVIVORS DETECTED */}
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] uppercase tracking-widest text-slate-400">SURVIVORS DETECTED</span>
+      {/* 1. FLIGHT PHASE */}
+      <div className="border-r border-white/10 px-3 flex flex-col justify-center items-center text-center min-w-0">
+        <span className="font-sans text-[10px] font-medium uppercase tracking-[0.05em] text-[#A1A1AA]">
+          FLIGHT PHASE
+        </span>
+        <div className="flex items-center justify-center gap-1.5 mt-0.5 leading-none">
           <span
-            className={`text-xs font-mono font-medium ${
-              survivorCount > 0 ? "text-emerald-400 font-semibold" : "text-slate-200"
+            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+              active
+                ? "bg-[#F97316] shadow-[0_0_6px_rgba(249,115,22,0.5)]"
+                : "bg-[#52525B]"
+            }`}
+          />
+          <span
+            className={`font-mono text-[13px] font-semibold tabular-nums leading-none ${
+              active ? "text-[#F97316]" : "text-[#F4F4F5]"
             }`}
           >
-            {String(survivorCount).padStart(2, "0")} / 06
+            {phaseLabel}
           </span>
         </div>
       </div>
 
-      {/* Right side operational indicator */}
-      <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
-        <span>GPS-DENIED INDOOR</span>
+      {/* 2. MISSION CLOCK */}
+      <div className="border-r border-white/10 px-3 flex flex-col justify-center items-center text-center min-w-0">
+        <span className="font-sans text-[10px] font-medium uppercase tracking-[0.05em] text-[#A1A1AA]">
+          MISSION CLOCK
+        </span>
+        <div className="flex items-center justify-center gap-1 mt-0.5 leading-none">
+          <span className="font-mono text-[13px] font-semibold text-[#F4F4F5] tabular-nums leading-none">
+            {formatTime(simTime)}
+          </span>
+          <span className="font-mono text-[11px] font-medium text-[#71717A] tabular-nums leading-none">
+            / 30:00
+          </span>
+        </div>
+      </div>
+
+      {/* 3. ALTITUDE */}
+      <div className="border-r border-white/10 px-3 flex flex-col justify-center items-center text-center min-w-0">
+        <span className="font-sans text-[10px] font-medium uppercase tracking-[0.05em] text-[#A1A1AA]">
+          ALTITUDE
+        </span>
+        <span className="font-mono text-[13px] font-semibold text-[#F4F4F5] tabular-nums leading-none mt-0.5">
+          {altitude !== null && Number.isFinite(altitude) ? `${altitude.toFixed(1)} m` : "0.0 m"}
+        </span>
+      </div>
+
+      {/* 4. SPEED */}
+      <div className="border-r border-white/10 px-3 flex flex-col justify-center items-center text-center min-w-0">
+        <span className="font-sans text-[10px] font-medium uppercase tracking-[0.05em] text-[#A1A1AA]">
+          SPEED
+        </span>
+        <span className="font-mono text-[13px] font-semibold text-[#F4F4F5] tabular-nums leading-none mt-0.5">
+          {active && Number.isFinite(groundSpeed) ? `${groundSpeed.toFixed(1)} m/s` : "0.0 m/s"}
+        </span>
+      </div>
+
+      {/* 5. BATTERY */}
+      <div className="border-r border-white/10 px-3 flex flex-col justify-center items-center text-center min-w-0">
+        <span className="font-sans text-[10px] font-medium uppercase tracking-[0.05em] text-[#A1A1AA]">
+          BATTERY
+        </span>
+        <div className="flex items-center justify-center gap-1.5 mt-0.5 leading-none">
+          <Battery size={13} className={active ? "text-emerald-400" : "text-[#A1A1AA]"} />
+          <span className="font-mono text-[13px] font-semibold text-[#F4F4F5] tabular-nums leading-none">
+            {battery}
+          </span>
+        </div>
+      </div>
+
+      {/* 6. HEADING */}
+      <div className="px-3 flex flex-col justify-center items-center text-center min-w-0">
+        <span className="font-sans text-[10px] font-medium uppercase tracking-[0.05em] text-[#A1A1AA]">
+          HEADING
+        </span>
+        <span className="font-mono text-[13px] font-semibold text-[#F4F4F5] tabular-nums leading-none mt-0.5">
+          {heading}
+        </span>
       </div>
     </footer>
   );
