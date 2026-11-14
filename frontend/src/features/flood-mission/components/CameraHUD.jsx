@@ -15,7 +15,7 @@ export default function CameraHUD({
   survivorCount = 0,
 }) {
   // Forward-facing flight camera only
-  const src = sessionId
+  const src = sessionId && !sessionId.startsWith("armed-") && !sessionId.startsWith("local-")
     ? `${apiBase}/simulation/flood/${sessionId}/camera/front?frame=${stamp}`
     : null;
 

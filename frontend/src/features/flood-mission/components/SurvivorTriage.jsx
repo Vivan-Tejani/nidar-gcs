@@ -70,7 +70,7 @@ export default function SurvivorTriage({
               title={
                 isDetected
                   ? `Target #${index} localized at grid ${gridBox}. Click to highlight on SLAM map.`
-                  : `Target #${index} unlocalized`
+                  : `Target #${index} not detected`
               }
             >
               {/* Left: A vertical status bar + Target ID */}
@@ -90,11 +90,11 @@ export default function SurvivorTriage({
               {/* Right: Single clean coordinate/state readout */}
               {isDetected ? (
                 <span className="font-mono text-[11px] font-semibold text-emerald-400 tabular-nums">
-                  {gridBox}
+                  Detected
                 </span>
               ) : (
                 <span className="font-mono text-[11px] text-[#71717A]">
-                  Unlocalized
+                  Not Detected
                 </span>
               )}
             </div>

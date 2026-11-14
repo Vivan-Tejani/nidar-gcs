@@ -47,10 +47,10 @@ export default function TelemetryStrip({
         </div>
       </div>
 
-      {/* 2. MISSION CLOCK */}
+      {/* 2. MISSION TIME */}
       <div className="border-r border-white/10 px-3 flex flex-col justify-center items-center text-center min-w-0">
         <span className="font-sans text-[10px] font-medium uppercase tracking-[0.05em] text-[#A1A1AA]">
-          MISSION CLOCK
+          MISSION TIME
         </span>
         <div className="flex items-center justify-center gap-1 mt-0.5 leading-none">
           <span className="font-mono text-[13px] font-semibold text-[#F4F4F5] tabular-nums leading-none">

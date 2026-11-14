@@ -17,17 +17,6 @@ const ARENA_X_MAX = 40.0;
 const ARENA_Y_MIN = -15.0;
 const ARENA_Y_MAX = 15.0;
 
-// Structural room layouts from flood_world.py
-const OBSTACLES = [
-  { x: 5.0, y: -10.0, w: 6.0, h: 5.0, label: "ROOM A1" },
-  { x: 20.0, y: -2.0, w: 7.0, h: 5.0, label: "CENTRAL CORE" },
-  { x: 5.0, y: 7.0, w: 6.0, h: 6.0, label: "ROOM B1" },
-  { x: 11.0, y: 11.0, w: 3.0, h: 4.0, label: "SECTION C" },
-  { x: 35.0, y: -10.0, w: 6.0, h: 5.0, label: "ROOM A2" },
-  { x: 35.0, y: 7.0, w: 6.0, h: 6.0, label: "ROOM B2" },
-  { x: 29.0, y: 11.0, w: 3.0, h: 4.0, label: "SECTION D" },
-];
-
 const ENTRY_PAD = { x: 20.0, y: -13.0, label: "LAUNCH PAD" };
 
 // Calculate 15x15 alphanumeric grid coordinate (Rows A-O, Cols 01-15)
@@ -47,6 +36,7 @@ export function getGridBox(x, y) {
 export default function Tactical2DMap({
   pose,
   trail = [],
+  rooms = [],
   people = [],
   active = false,
   coveragePercent = 0,
@@ -55,7 +45,7 @@ export default function Tactical2DMap({
 }) {
   const [zoom, setZoom] = useState(1);
   const [showGrid, setShowGrid] = useState(true);
-  const [showStructures, setShowStructures] = useState(true);
+  const [showRooms, setShowRooms] = useState(true);
   const [showTrail, setShowTrail] = useState(true);
   const svgRef = useRef(null);
 
@@ -171,14 +161,14 @@ export default function Tactical2DMap({
             <button
               type="button"
               className={`h-6 px-3 flex items-center gap-1.5 text-xs font-sans font-semibold rounded-[3px] transition-all border cursor-pointer ${
-                showStructures
+                showRooms
                   ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_8px_rgba(6,182,212,0.25)]"
                   : "bg-transparent text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 border-transparent"
               }`}
-              onClick={() => setShowStructures(!showStructures)}
+              onClick={() => setShowRooms(!showRooms)}
               title="Toggle Structural Rooms"
             >
-              <Square size={12} className={showStructures ? "text-cyan-400" : "text-[#A1A1AA]"} />
+              <Square size={12} className={showRooms ? "text-cyan-400" : "text-[#A1A1AA]"} />
               <span>Rooms</span>
             </button>
 
@@ -342,10 +332,10 @@ export default function Tactical2DMap({
             </g>
           )}
 
-          {/* 2. Structural Room Boundaries (Translucent Blueprint Style) */}
-          {showStructures && (
+          {/* Dynamic Structural Room Boundaries (Active when room data is supplied) */}
+          {showRooms && rooms.length > 0 && (
             <g className="structures-group">
-              {OBSTACLES.map((obs, idx) => {
+              {rooms.map((obs, idx) => {
                 const topLeft = worldToSvg(obs.x - obs.w / 2, obs.y + obs.h / 2);
                 const bottomRight = worldToSvg(obs.x + obs.w / 2, obs.y - obs.h / 2);
                 const width = Math.abs(bottomRight.x - topLeft.x);
@@ -363,18 +353,20 @@ export default function Tactical2DMap({
                       strokeWidth="1"
                       rx="2"
                     />
-                    <text
-                      x={topLeft.x + width / 2}
-                      y={topLeft.y + height / 2 + 3}
-                      textAnchor="middle"
-                      fill="#A1A1AA"
-                      fontSize="11"
-                      fontWeight="600"
-                      letterSpacing="0.08em"
-                      fontFamily="var(--font-sans), sans-serif"
-                    >
-                      {obs.label}
-                    </text>
+                    {obs.label && (
+                      <text
+                        x={topLeft.x + width / 2}
+                        y={topLeft.y + height / 2 + 3}
+                        textAnchor="middle"
+                        fill="#A1A1AA"
+                        fontSize="11"
+                        fontWeight="600"
+                        letterSpacing="0.08em"
+                        fontFamily="var(--font-sans), sans-serif"
+                      >
+                        {obs.label}
+                      </text>
+                    )}
                   </g>
                 );
               })}

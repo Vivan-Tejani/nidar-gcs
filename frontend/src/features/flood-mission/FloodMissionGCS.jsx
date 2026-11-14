@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Head from "next/head";
 import {
   Play,
-  ShieldAlert,
+  Square,
   AlertTriangle,
   X
 } from "lucide-react";
@@ -32,6 +32,7 @@ export default function FloodMissionGCS() {
   const [mission, setMission] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [aborting, setAborting] = useState(false);
   const [cameraStamp, setCameraStamp] = useState(Date.now());
   const [expandedCamera, setExpandedCamera] = useState(false);
   const [groundSpeed, setGroundSpeed] = useState(null);
@@ -76,6 +77,13 @@ export default function FloodMissionGCS() {
     };
   }, []);
 
+  // Auto-dismiss transient error notice after 4 seconds
+  useEffect(() => {
+    if (!error) return undefined;
+    const timer = setTimeout(() => setError(""), 4000);
+    return () => clearTimeout(timer);
+  }, [error]);
+
   // Start autonomous mission
   const startMission = async () => {
     setBusy(true);
@@ -93,7 +101,7 @@ export default function FloodMissionGCS() {
       speedSample.current = null;
       setMission({ ...data, state: { phase: "INITIALIZING", trail: [], people: [] } });
     } catch (e) {
-      const message = e.message || "Could not connect to the simulation backend";
+      const message = e.message || "";
       if (/already active/i.test(message)) {
         try {
           const response = await fetch(`${API}/simulation/flood/active`, { cache: "no-store" });
@@ -109,7 +117,9 @@ export default function FloodMissionGCS() {
           // Keep original error
         }
       }
-      setError(message);
+
+      // Drone is not connected: show error message at bottom, do not change button or move drone
+      setError("Nothing is connected");
     } finally {
       setBusy(false);
     }
@@ -118,21 +128,24 @@ export default function FloodMissionGCS() {
   // Emergency safety abort
   const abortMission = async () => {
     if (!mission?.session_id) return;
+    setAborting(true);
     try {
       const response = await fetch(`${API}/simulation/flood/${mission.session_id}/stop`, { method: "POST" });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "Could not abort mission");
       setMission((current) => ({
         ...current,
-        status: data.status,
-        state: { ...current.state, phase: "STOPPED" },
+        status: data.status || "stopped",
+        state: { ...current?.state, phase: "STOPPED" },
       }));
     } catch (e) {
       setError(e.message || "Could not abort mission");
+    } finally {
+      setAborting(false);
     }
   };
 
-  // State polling interval while active
+  // State polling interval while active (backend mode)
   useEffect(() => {
     if (!mission?.session_id) return undefined;
     if (!["starting", "running", "returning"].includes(mission.status)) return undefined;
@@ -263,10 +276,10 @@ export default function FloodMissionGCS() {
   return (
     <>
       <Head>
-        <title>PHOENIX GCS · Autonomous Mission Control</title>
+        <title>DJS Phoenix GCS · Autonomous Mission Control</title>
         <meta
           name="description"
-          content="Phoenix GCS autonomous indoor search, mapping and survivor localization ground control station."
+          content="DJS Phoenix GCS autonomous indoor search, mapping and survivor localization ground control station."
         />
         <link rel="preload" as="image" href="/api/background" />
       </Head>
@@ -289,11 +302,11 @@ export default function FloodMissionGCS() {
       <header className="gcs-top-bar h-12 flex items-center justify-between px-2 bg-transparent border-none shadow-none z-40 select-none" aria-label="GCS Header">
         {/* Left Side Group */}
         <div className="flex items-center gap-3">
-          {/* Phoenix GCS Branding */}
+          {/* DJS Phoenix GCS Branding */}
           <div className="brand-cluster flex items-center gap-2.5">
-            <img className="phoenix-emblem w-8 h-8 object-contain" src="/phoenix-bird.png" alt="Phoenix bird emblem" />
+            <img className="phoenix-emblem w-8 h-8 object-contain" src="/phoenix-bird.png" alt="DJS Phoenix bird emblem" />
             <div className="phoenix-wordmark flex items-center leading-none">
-              <strong className="text-[17px] font-extrabold tracking-wider text-[#F4F4F5]">PHOENIX <span className="text-[#F97316]">GCS</span></strong>
+              <strong className="text-[17px] font-extrabold tracking-wider text-[#F4F4F5]">DJS Phoenix <span className="text-[#F97316]">GCS</span></strong>
             </div>
           </div>
         </div>
@@ -305,10 +318,15 @@ export default function FloodMissionGCS() {
               type="button"
               className="bg-[#EF4444] hover:bg-[#DC2626] text-white font-sans font-semibold text-xs px-4 h-8 rounded-[3px] shadow-none border-none transition-colors inline-flex items-center gap-2 cursor-pointer"
               onClick={abortMission}
-              aria-label="Emergency Stop and Abort Mission"
+              disabled={aborting}
+              aria-label="Abort Mission"
             >
-              <ShieldAlert size={14} className="fill-current text-white" />
-              <span>EMERGENCY ABORT</span>
+              {aborting ? (
+                <span className="w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              ) : (
+                <Square size={11} className="fill-current text-white" />
+              )}
+              <span>{aborting ? "ABORTING..." : "ABORT MISSION"}</span>
             </button>
           ) : (
             <button
