@@ -124,14 +124,14 @@ export default function Tactical2DMap({
   const rows = Array.from({ length: 15 }, (_, i) => String.fromCharCode(65 + i));
 
   return (
-    <div className="tactical-map-container bg-[#0a0b10]/40 backdrop-blur-xl border border-white/10 rounded-[4px] overflow-hidden" aria-label="Tactical 2D Indoor SLAM Map">
+    <div className="tactical-map-container bg-[#0a0b10]/50 backdrop-blur-xl border border-white/10 rounded-[16px] overflow-hidden shadow-[0_12px_36px_-4px_rgba(0,0,0,0.55),0_4px_12px_-2px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.14),inset_0_0_0_1px_rgba(255,255,255,0.05)]" aria-label="Tactical 2D Indoor SLAM Map">
       {/* 1. Header Toolbar with Integrated Inline Segmented Controls */}
-      <div className="map-toolbar h-8 flex items-center justify-between px-3 bg-[#0a0b10]/60 border-b border-white/10 select-none">
+      <div className="map-toolbar h-[36px] flex items-center justify-between px-3.5 bg-[#0e1018]/70 border-b border-white/[0.08] select-none">
         <div className="flex items-center gap-2 shrink-0">
           <span
-            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+            className={`w-2 h-2 rounded-full shrink-0 ${
               active
-                ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)] animate-pulse"
+                ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)] animate-pulse"
                 : "bg-[#52525B]"
             }`}
           />
@@ -143,10 +143,10 @@ export default function Tactical2DMap({
         {/* Inline Compact Action & Layer Controls */}
         <div className="flex items-center gap-2 select-none">
           {/* Layer Toggles Segmented Group */}
-          <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md p-0.5 rounded-[4px] border border-white/10">
+          <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md p-0.5 rounded-[8px] border border-white/10">
             <button
               type="button"
-              className={`h-6 px-3 flex items-center gap-1.5 text-xs font-sans font-semibold rounded-[3px] transition-all border cursor-pointer ${
+              className={`h-6 px-2.5 flex items-center gap-1.5 text-xs font-sans font-semibold rounded-[6px] transition-all border cursor-pointer ${
                 showGrid
                   ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_8px_rgba(6,182,212,0.25)]"
                   : "bg-transparent text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 border-transparent"
@@ -160,7 +160,7 @@ export default function Tactical2DMap({
 
             <button
               type="button"
-              className={`h-6 px-3 flex items-center gap-1.5 text-xs font-sans font-semibold rounded-[3px] transition-all border cursor-pointer ${
+              className={`h-6 px-2.5 flex items-center gap-1.5 text-xs font-sans font-semibold rounded-[6px] transition-all border cursor-pointer ${
                 showRooms
                   ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_8px_rgba(6,182,212,0.25)]"
                   : "bg-transparent text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 border-transparent"
@@ -174,7 +174,7 @@ export default function Tactical2DMap({
 
             <button
               type="button"
-              className={`h-6 px-3 flex items-center gap-1.5 text-xs font-sans font-semibold rounded-[3px] transition-all border cursor-pointer ${
+              className={`h-6 px-2.5 flex items-center gap-1.5 text-xs font-sans font-semibold rounded-[6px] transition-all border cursor-pointer ${
                 showTrail
                   ? "bg-cyan-500/20 text-cyan-300 border-cyan-400/50 shadow-[0_0_8px_rgba(6,182,212,0.25)]"
                   : "bg-transparent text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 border-transparent"
@@ -191,10 +191,10 @@ export default function Tactical2DMap({
           <div className="h-3.5 w-[1px] bg-white/10" />
 
           {/* Zoom Buttons Group */}
-          <div className="flex items-center gap-0.5 bg-black/60 backdrop-blur-md p-0.5 rounded-[4px] border border-white/10">
+          <div className="flex items-center gap-0.5 bg-black/60 backdrop-blur-md p-0.5 rounded-[8px] border border-white/10">
             <button
               type="button"
-              className="w-6 h-6 flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 rounded-[2px] transition-colors border-0 bg-transparent cursor-pointer"
+              className="w-6 h-6 flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 rounded-[6px] transition-colors border-0 bg-transparent cursor-pointer"
               onClick={() => setZoom((z) => Math.min(2.0, z + 0.2))}
               title="Zoom In"
             >
@@ -203,7 +203,7 @@ export default function Tactical2DMap({
 
             <button
               type="button"
-              className="w-6 h-6 flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 rounded-[2px] transition-colors border-0 bg-transparent cursor-pointer"
+              className="w-6 h-6 flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 rounded-[6px] transition-colors border-0 bg-transparent cursor-pointer"
               onClick={() => setZoom((z) => Math.max(0.8, z - 0.2))}
               title="Zoom Out"
             >
@@ -212,7 +212,7 @@ export default function Tactical2DMap({
 
             <button
               type="button"
-              className="w-6 h-6 flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 rounded-[2px] transition-colors border-0 bg-transparent cursor-pointer"
+              className="w-6 h-6 flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 rounded-[6px] transition-colors border-0 bg-transparent cursor-pointer"
               onClick={() => setZoom(1)}
               title="Reset Scale"
             >
@@ -226,7 +226,7 @@ export default function Tactical2DMap({
           {/* Export Tactical Rescue Map */}
           <button
             type="button"
-            className="h-6 flex items-center gap-1.5 px-2.5 text-xs font-sans font-medium text-[#E4E4E7] bg-black/60 hover:bg-white/15 border border-white/10 rounded-[3px] transition-colors cursor-pointer"
+            className="h-7 flex items-center gap-1.5 px-3 text-xs font-sans font-medium text-[#E4E4E7] bg-black/60 hover:bg-white/15 active:scale-95 border border-white/10 rounded-[8px] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-all cursor-pointer"
             onClick={handleExportMap}
             title="Export 2D Map for Ground Rescue Teams"
           >
@@ -250,13 +250,14 @@ export default function Tactical2DMap({
             transition: "transform 0.15s ease-out",
           }}
         >
-          {/* Translucent Arena Boundary (replaces opaque canvas) */}
+          {/* Translucent Arena Boundary with Sleek Concentric Radius */}
           <rect
             x={padding}
             y={padding}
             width={innerWidth}
             height={innerHeight}
-            fill="rgba(5, 7, 12, 0.15)"
+            rx="10"
+            fill="rgba(5, 7, 12, 0.18)"
             stroke="rgba(255, 255, 255, 0.22)"
             strokeWidth="1"
           />
@@ -351,7 +352,7 @@ export default function Tactical2DMap({
                       fill="rgba(14, 18, 26, 0.55)"
                       stroke="rgba(255, 255, 255, 0.30)"
                       strokeWidth="1"
-                      rx="2"
+                      rx="4"
                     />
                     {obs.label && (
                       <text
@@ -387,7 +388,7 @@ export default function Tactical2DMap({
                   stroke="rgba(255, 255, 255, 0.3)"
                   strokeWidth="1"
                   strokeDasharray="3 2"
-                  rx="2"
+                  rx="4"
                 />
                 <text
                   x="0"
@@ -481,7 +482,7 @@ export default function Tactical2DMap({
                       y="-10"
                       width="46"
                       height="16"
-                      rx="2"
+                      rx="5"
                       fill="#111113"
                       stroke="#222227"
                       strokeWidth="1"
@@ -531,9 +532,9 @@ export default function Tactical2DMap({
                 y="-10"
                 width="78"
                 height="16"
-                rx="2"
+                rx="6"
                 fill="#111113"
-                stroke="#222227"
+                stroke="#2a2a32"
                 strokeWidth="0.8"
               />
               <text
@@ -551,7 +552,7 @@ export default function Tactical2DMap({
         </svg>
 
         {/* 3. Floating Map Legend (Bottom-Left Translucent Overlay) */}
-        <div className="absolute bottom-3 left-3 z-20 bg-black/65 backdrop-blur-md border border-white/10 px-3 py-1.5 text-xs font-sans text-[#A1A1AA] rounded-[3px] flex items-center gap-3 select-none pointer-events-none">
+        <div className="absolute bottom-3 left-3 z-20 bg-black/75 backdrop-blur-md border border-white/10 px-3.5 py-1.5 text-xs font-sans text-[#A1A1AA] rounded-[10px] flex items-center gap-3 select-none pointer-events-none shadow-[0_6px_20px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.08)]">
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[#F97316] shrink-0" />
             <span>Drone</span>
@@ -561,7 +562,7 @@ export default function Tactical2DMap({
             <span>Survivor</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-[1px] bg-black/60 border border-white/20 shrink-0" />
+            <span className="w-2 h-2 rounded-[2px] bg-black/60 border border-white/20 shrink-0" />
             <span>Room</span>
           </div>
           <div className="flex items-center gap-1.5">

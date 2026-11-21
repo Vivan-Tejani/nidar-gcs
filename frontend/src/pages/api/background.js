@@ -1,7 +1,14 @@
 import fs from "fs";
 import path from "path";
 
+export const config = {
+  api: {
+    responseLimit: false,
+  },
+};
+
 const MIME_MAP = {
+  // Images
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".png": "image/png",
@@ -9,6 +16,13 @@ const MIME_MAP = {
   ".svg": "image/svg+xml",
   ".gif": "image/gif",
   ".avif": "image/avif",
+  // Videos
+  ".mp4": "video/mp4",
+  ".mov": "video/quicktime",
+  ".webm": "video/webm",
+  ".m4v": "video/mp4",
+  ".ogg": "video/ogg",
+  ".ogv": "video/ogg",
 };
 
 export default function handler(req, res) {
@@ -28,7 +42,7 @@ export default function handler(req, res) {
       return res.status(404).send("Background directory not found");
     }
 
-    const imageFiles = [];
+    const mediaFiles = [];
 
     for (const dir of uniqueDirs) {
       try {
@@ -40,7 +54,7 @@ export default function handler(req, res) {
             try {
               const stat = fs.statSync(filePath);
               if (stat.isFile()) {
-                imageFiles.push({
+                mediaFiles.push({
                   file,
                   filePath,
                   ext,
@@ -60,25 +74,30 @@ export default function handler(req, res) {
     }
 
     // Sort newest modified first
-    imageFiles.sort((a, b) => b.mtimeMs - a.mtimeMs);
+    mediaFiles.sort((a, b) => b.mtimeMs - a.mtimeMs);
 
-    if (imageFiles.length === 0) {
-      return res.status(404).send("No image found in background directory");
+    if (mediaFiles.length === 0) {
+      return res.status(404).send("No background media found in directory");
     }
 
-    const latest = imageFiles[0];
+    const latest = mediaFiles[0];
+    const isVideo = (MIME_MAP[latest.ext] || "").startsWith("video/");
+    const contentType = MIME_MAP[latest.ext] || (isVideo ? "video/mp4" : "image/jpeg");
 
-    // Keep public/background in sync if available
-    try {
-      const publicBgDir = path.resolve(process.cwd(), "public", "background");
-      if (fs.existsSync(publicBgDir) && path.dirname(latest.filePath) !== publicBgDir) {
-        const dest = path.join(publicBgDir, latest.file);
-        if (!fs.existsSync(dest) || fs.statSync(dest).mtimeMs < latest.mtimeMs) {
-          fs.copyFileSync(latest.filePath, dest);
+    // Keep public/background in sync for small images if available, without blocking event loop or mutating timestamps
+    if (!isVideo && latest.size < 5 * 1024 * 1024) {
+      try {
+        const publicBgDir = path.resolve(process.cwd(), "public", "background");
+        if (fs.existsSync(publicBgDir) && path.dirname(latest.filePath) !== publicBgDir) {
+          const dest = path.join(publicBgDir, latest.file);
+          if (!fs.existsSync(dest) || fs.statSync(dest).mtimeMs < latest.mtimeMs) {
+            fs.copyFileSync(latest.filePath, dest);
+            fs.utimesSync(dest, latest.mtime, latest.mtime);
+          }
         }
+      } catch {
+        // Non-critical sync
       }
-    } catch {
-      // Non-critical sync
     }
 
     // Info endpoint for real-time polling / hot reload
@@ -92,14 +111,17 @@ export default function handler(req, res) {
         version: `${Math.floor(latest.mtimeMs)}-${latest.size}`,
         size: latest.size,
         mtime: latest.mtimeMs,
+        type: isVideo ? "video" : "image",
+        isVideo,
+        contentType,
       });
     }
 
-    const contentType = MIME_MAP[latest.ext] || "image/jpeg";
-    const imageBuffer = fs.readFileSync(latest.filePath);
+    const fileSize = latest.size;
+    const rangeHeader = req.headers.range;
 
-    res.setHeader("Content-Type", contentType);
-    res.setHeader("Content-Length", imageBuffer.length);
+    // Common caching & validation headers
+    res.setHeader("Accept-Ranges", "bytes");
     res.setHeader(
       "Cache-Control",
       "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0"
@@ -110,8 +132,125 @@ export default function handler(req, res) {
     res.setHeader("ETag", `"${Math.floor(latest.mtimeMs)}-${latest.size}"`);
     res.setHeader("Last-Modified", latest.mtime.toUTCString());
 
-    return res.status(200).send(imageBuffer);
+    // Only process Range if it starts with "bytes=" (RFC 9110: ignore unknown range units)
+    const bytesRangeMatch = rangeHeader ? rangeHeader.match(/^bytes\s*=\s*(.+)$/i) : null;
+
+    if (bytesRangeMatch) {
+      // If multiple ranges requested (e.g. bytes=0-10, 20-30), take the first range
+      const spec = bytesRangeMatch[1].split(",")[0].trim();
+      const dashIdx = spec.indexOf("-");
+
+      if (dashIdx === -1) {
+        res.setHeader("Content-Range", `bytes */${fileSize}`);
+        return res.status(416).end();
+      }
+
+      const rawStart = spec.substring(0, dashIdx).trim();
+      const rawEnd = spec.substring(dashIdx + 1).trim();
+
+      let start;
+      let end;
+
+      if (rawStart === "" && rawEnd !== "") {
+        // Suffix range: bytes=-N (e.g. bytes=-500 -> last 500 bytes)
+        const suffix = parseInt(rawEnd, 10);
+        if (isNaN(suffix) || suffix <= 0) {
+          res.setHeader("Content-Range", `bytes */${fileSize}`);
+          return res.status(416).end();
+        }
+        start = Math.max(0, fileSize - suffix);
+        end = fileSize - 1;
+      } else if (rawStart !== "" && rawEnd === "") {
+        // Prefix range: bytes=N- (from N to end of file)
+        start = parseInt(rawStart, 10);
+        end = fileSize - 1;
+      } else if (rawStart !== "" && rawEnd !== "") {
+        // Specific range: bytes=N-M
+        start = parseInt(rawStart, 10);
+        end = parseInt(rawEnd, 10);
+      } else {
+        res.setHeader("Content-Range", `bytes */${fileSize}`);
+        return res.status(416).end();
+      }
+
+      if (isNaN(start) || isNaN(end) || start > end || start >= fileSize || start < 0) {
+        res.setHeader("Content-Range", `bytes */${fileSize}`);
+        return res.status(416).end();
+      }
+
+      if (end >= fileSize) {
+        end = fileSize - 1;
+      }
+
+      const chunkSize = end - start + 1;
+
+      res.status(206);
+      res.setHeader("Content-Range", `bytes ${start}-${end}/${fileSize}`);
+      res.setHeader("Content-Length", chunkSize);
+      res.setHeader("Content-Type", contentType);
+
+      if (req.method === "HEAD") {
+        return res.end();
+      }
+
+      const stream = fs.createReadStream(latest.filePath, { start, end });
+      return new Promise((resolve) => {
+        let resolved = false;
+        const cleanup = () => {
+          if (!resolved) {
+            resolved = true;
+            stream.destroy();
+            resolve();
+          }
+        };
+
+        res.on("close", cleanup);
+        res.on("finish", cleanup);
+        stream.on("end", cleanup);
+        stream.on("error", () => {
+          if (!res.headersSent) {
+            res.status(500).send("Error streaming media");
+          }
+          cleanup();
+        });
+
+        stream.pipe(res);
+      });
+    }
+
+    // Full content response (200 OK)
+    res.status(200);
+    res.setHeader("Content-Length", fileSize);
+    res.setHeader("Content-Type", contentType);
+
+    if (req.method === "HEAD") {
+      return res.end();
+    }
+
+    const stream = fs.createReadStream(latest.filePath);
+    return new Promise((resolve) => {
+      let resolved = false;
+      const cleanup = () => {
+        if (!resolved) {
+          resolved = true;
+          stream.destroy();
+          resolve();
+        }
+      };
+
+      res.on("close", cleanup);
+      res.on("finish", cleanup);
+      stream.on("end", cleanup);
+      stream.on("error", () => {
+        if (!res.headersSent) {
+          res.status(500).send("Error streaming media");
+        }
+        cleanup();
+      });
+
+      stream.pipe(res);
+    });
   } catch {
-    return res.status(500).send("Error reading background image");
+    return res.status(500).send("Error reading background media");
   }
 }

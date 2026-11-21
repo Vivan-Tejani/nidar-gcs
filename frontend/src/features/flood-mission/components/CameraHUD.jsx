@@ -31,18 +31,18 @@ export default function CameraHUD({
 
   return (
     <section
-      className={`camera-hud-card bg-[#0a0b10]/40 backdrop-blur-xl border border-white/10 rounded-[4px] overflow-hidden ${
+      className={`camera-hud-card bg-[#0a0b10]/50 backdrop-blur-xl border border-white/10 rounded-[16px] overflow-hidden shadow-[0_12px_36px_-4px_rgba(0,0,0,0.55),0_4px_12px_-2px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.14),inset_0_0_0_1px_rgba(255,255,255,0.05)] ${
         expanded ? "camera-hud-expanded" : ""
       }`}
       aria-label="Forward Optical Feed Viewport"
     >
-      {/* 1. Slim Panel Header (32px / h-8) */}
-      <div className="camera-card-header h-8 flex items-center justify-between px-3 bg-[#0a0b10]/60 border-b border-white/10 select-none">
+      {/* 1. Slim Panel Header (36px) */}
+      <div className="camera-card-header h-[36px] flex items-center justify-between px-3.5 bg-[#0e1018]/70 border-b border-white/[0.08] select-none">
         <div className="flex items-center gap-2">
-          {/* 6px Single Status Dot */}
+          {/* Status Dot */}
           <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              active ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.5)]" : "bg-[#52525B]"
+            className={`w-2 h-2 rounded-full ${
+              active ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)]" : "bg-[#52525B]"
             }`}
           />
           {/* Crisp 12px sans-serif title */}
@@ -51,11 +51,11 @@ export default function CameraHUD({
           </strong>
         </div>
 
-        {/* Minimalist action buttons on the right (w-6 h-6) */}
+        {/* Minimalist action buttons on the right */}
         <div className="flex items-center gap-1">
           <button
             type="button"
-            className="w-6 h-6 flex items-center justify-center rounded-[3px] text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 transition-colors border-0 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center rounded-[7px] text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 active:scale-95 transition-all border-0 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
             onClick={handleSnapshot}
             disabled={!src}
             title="Export Frame Snapshot"
@@ -66,7 +66,7 @@ export default function CameraHUD({
 
           <button
             type="button"
-            className="w-6 h-6 flex items-center justify-center rounded-[3px] text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 transition-colors border-0 cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center rounded-[7px] text-[#A1A1AA] hover:text-[#F4F4F5] hover:bg-white/10 active:scale-95 transition-all border-0 cursor-pointer"
             onClick={onToggleExpand}
             title={expanded ? "Exit Fullscreen" : "Expand Viewport"}
             aria-label={expanded ? "Restore Camera" : "Expand Camera"}
@@ -76,8 +76,20 @@ export default function CameraHUD({
         </div>
       </div>
 
-      {/* 2. Plain Box Viewport: Awaiting Camera Feed */}
+      {/* 2. Precision Optical Viewport */}
       <div className="camera-viewport-body relative w-full h-full min-h-0 bg-transparent overflow-hidden flex items-center justify-center">
+        {/* Subtle HUD Framing Brackets */}
+        <div className="pointer-events-none absolute inset-3 flex flex-col justify-between">
+          <div className="flex justify-between">
+            <span className="w-2.5 h-2.5 border-t border-l border-white/20 rounded-tl-[2px]" />
+            <span className="w-2.5 h-2.5 border-t border-r border-white/20 rounded-tr-[2px]" />
+          </div>
+          <div className="flex justify-between">
+            <span className="w-2.5 h-2.5 border-b border-l border-white/20 rounded-bl-[2px]" />
+            <span className="w-2.5 h-2.5 border-b border-r border-white/20 rounded-br-[2px]" />
+          </div>
+        </div>
+
         {src ? (
           <img
             src={src}
@@ -85,8 +97,9 @@ export default function CameraHUD({
             className="w-full h-full object-contain block select-none"
           />
         ) : (
-          <div className="px-4 py-2 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-xs font-mono text-zinc-300 select-none">
-            Awaiting camera feed
+          <div className="px-4 py-2 rounded-full bg-black/70 backdrop-blur-md border border-white/15 text-xs font-mono text-zinc-300 shadow-[0_4px_20px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] flex items-center gap-2 select-none">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400/90 animate-pulse" />
+            <span>Awaiting camera feed</span>
           </div>
         )}
       </div>

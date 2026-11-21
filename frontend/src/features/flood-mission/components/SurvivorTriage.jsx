@@ -23,14 +23,14 @@ export default function SurvivorTriage({
 
   return (
     <section
-      className="survivor-triage-panel flex flex-col bg-[#0a0b10]/40 backdrop-blur-xl border border-white/10 rounded-[4px] overflow-hidden select-none shrink-0"
+      className="survivor-triage-panel flex flex-col bg-[#0a0b10]/50 backdrop-blur-xl border border-white/10 rounded-[16px] overflow-hidden select-none shrink-0 shadow-[0_12px_36px_-4px_rgba(0,0,0,0.55),0_4px_12px_-2px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.14),inset_0_0_0_1px_rgba(255,255,255,0.05)]"
       aria-label="Survivors Detected"
     >
       {/* Panel Header */}
-      <div className="triage-panel-header h-8 flex items-center justify-between px-3 bg-[#0a0b10]/60 border-b border-white/10 select-none shrink-0">
+      <div className="triage-panel-header h-[36px] flex items-center justify-between px-3.5 bg-[#0e1018]/70 border-b border-white/[0.08] select-none shrink-0">
         <div className="flex items-center gap-2">
           <Users size={13} className="text-[#A1A1AA]" />
-          <strong className="text-[11px] font-sans font-semibold uppercase tracking-[0.06em] text-[#A1A1AA]">
+          <strong className="text-xs font-sans font-semibold uppercase tracking-[0.06em] text-[#F4F4F5]">
             SURVIVORS DETECTED
           </strong>
         </div>
@@ -50,7 +50,7 @@ export default function SurvivorTriage({
       </div>
 
       {/* Clean 2x3 Grid Container */}
-      <div className="manifest-grid grid grid-cols-2 gap-1.5 p-2.5 bg-transparent">
+      <div className="manifest-grid grid grid-cols-2 gap-2.5 p-3 bg-transparent">
         {slots.map(({ index, person, isDetected }) => {
           const gridBox = isDetected ? getGridBox(person.x, person.y) : null;
           const isSelected = isDetected && selectedSurvivorId === person.id;
@@ -59,12 +59,12 @@ export default function SurvivorTriage({
           return (
             <div
               key={`target-${index}`}
-              className={`rounded-[3px] px-3 py-2 flex items-center justify-between transition-colors select-none ${
+              className={`rounded-[10px] px-3.5 py-2.5 flex items-center justify-between transition-all select-none ${
                 isSelected
-                  ? "bg-[#18181F]/90 border border-cyan-400/60 shadow-[0_0_12px_rgba(6,182,212,0.25)] cursor-pointer"
+                  ? "bg-[#161b26]/90 border border-cyan-400/60 shadow-[0_0_16px_rgba(6,182,212,0.25),inset_0_1px_0_rgba(6,182,212,0.35)] cursor-pointer"
                   : isDetected
-                  ? "bg-black/60 hover:bg-black/75 border border-emerald-500/40 cursor-pointer"
-                  : "bg-black/45 border border-white/10 hover:border-white/20 cursor-default"
+                  ? "bg-emerald-950/30 hover:bg-emerald-950/45 border border-emerald-500/40 shadow-[0_0_14px_rgba(16,185,129,0.15),inset_0_1px_0_rgba(16,185,129,0.25)] cursor-pointer"
+                  : "bg-black/45 hover:bg-black/60 border border-white/[0.07] hover:border-white/[0.14] shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] cursor-default"
               }`}
               onClick={() => isDetected && onSelectSurvivor && onSelectSurvivor(person)}
               title={
@@ -76,13 +76,19 @@ export default function SurvivorTriage({
               {/* Left: A vertical status bar + Target ID */}
               <div className="flex items-center gap-2 min-w-0">
                 <span
-                  className={`w-[3px] h-4 rounded-full shrink-0 transition-colors ${
-                    isDetected
-                      ? "bg-[#10B981] shadow-[0_0_6px_rgba(16,185,129,0.5)]"
-                      : "bg-[#27272A]"
+                  className={`w-1 h-3.5 rounded-full shrink-0 transition-colors ${
+                    isSelected
+                      ? "bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.8)]"
+                      : isDetected
+                      ? "bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.7)]"
+                      : "bg-zinc-700/60"
                   }`}
                 />
-                <span className="font-mono text-xs font-semibold text-[#E4E4E7]">
+                <span
+                  className={`font-mono text-xs font-semibold ${
+                    isSelected ? "text-cyan-200" : isDetected ? "text-emerald-300" : "text-[#E4E4E7]"
+                  }`}
+                >
                   {targetId}
                 </span>
               </div>
@@ -90,7 +96,7 @@ export default function SurvivorTriage({
               {/* Right: Single clean coordinate/state readout */}
               {isDetected ? (
                 <span className="font-mono text-[11px] font-semibold text-emerald-400 tabular-nums">
-                  Detected
+                  {gridBox ? `Grid ${gridBox}` : "Detected"}
                 </span>
               ) : (
                 <span className="font-mono text-[11px] text-[#71717A]">

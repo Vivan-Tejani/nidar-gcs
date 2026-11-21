@@ -243,7 +243,25 @@ export default function FloodMissionGCS() {
   }, [expandedCamera]);
 
   // Real-time automatic background wallpaper hot-reload
-  const [bgSrc, setBgSrc] = useState("/api/background");
+  const [isVideoBg, setIsVideoBg] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return sessionStorage.getItem("gcs_bg_is_video") === "1";
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+  const [bgSrc, setBgSrc] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = sessionStorage.getItem("gcs_bg_src");
+        if (cached) return cached;
+      } catch {}
+    }
+    return "/api/background";
+  });
   const lastVersionRef = useRef(null);
 
   useEffect(() => {
@@ -254,11 +272,21 @@ export default function FloodMissionGCS() {
         if (res.ok) {
           const data = await res.json();
           if (active && data.version) {
+            const isVideo = Boolean(data.isVideo || data.type === "video");
+            const newSrc = `/api/background?v=${data.version}`;
+            try {
+              sessionStorage.setItem("gcs_bg_is_video", isVideo ? "1" : "0");
+              sessionStorage.setItem("gcs_bg_src", newSrc);
+            } catch {}
+
             if (lastVersionRef.current === null) {
               lastVersionRef.current = data.version;
+              setIsVideoBg(isVideo);
+              setBgSrc(newSrc);
             } else if (lastVersionRef.current !== data.version) {
               lastVersionRef.current = data.version;
-              setBgSrc(`/api/background?v=${data.version}`);
+              setIsVideoBg(isVideo);
+              setBgSrc(newSrc);
             }
           }
         }
@@ -281,23 +309,42 @@ export default function FloodMissionGCS() {
           name="description"
           content="DJS Phoenix GCS autonomous indoor search, mapping and survivor localization ground control station."
         />
-        <link rel="preload" as="image" href="/api/background" />
       </Head>
 
       {/* Fixed Hardware-Accelerated Wallpaper Layer: Sits above body (z-0), beneath UI (z-10) */}
       <div
         className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
+        style={{ filter: "brightness(0.8)" }}
         aria-hidden="true"
       >
-        <img
-          src={bgSrc}
-          alt="Mission Control Background"
-          className="w-full h-full object-cover object-center block"
-          loading="eager"
-        />
+        {isVideoBg ? (
+          <video
+            key={bgSrc}
+            ref={(el) => {
+              if (el) {
+                el.muted = true;
+                el.play().catch(() => {});
+              }
+            }}
+            src={bgSrc}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover object-center block"
+          />
+        ) : (
+          <img
+            key={bgSrc}
+            src={bgSrc}
+            alt="Mission Control Background"
+            className="w-full h-full object-cover object-center block"
+            loading="eager"
+          />
+        )}
       </div>
 
-      <main className="gcs-root-frame p-2 gap-2 relative z-10">
+      <main className="gcs-root-frame p-2.5 gap-2.5 relative z-10">
         {/* 1. Header Navigation & Tactical Master Controls */}
       <header className="gcs-top-bar h-12 flex items-center justify-between px-2 bg-transparent border-none shadow-none z-40 select-none" aria-label="GCS Header">
         {/* Left Side Group */}
@@ -316,7 +363,7 @@ export default function FloodMissionGCS() {
           {active ? (
             <button
               type="button"
-              className="bg-[#EF4444] hover:bg-[#DC2626] text-white font-sans font-semibold text-xs px-4 h-8 rounded-[3px] shadow-none border-none transition-colors inline-flex items-center gap-2 cursor-pointer"
+              className="bg-[#EF4444] hover:bg-[#DC2626] text-white font-sans font-semibold text-xs px-4 h-8 rounded-[8px] shadow-[0_2px_14px_rgba(239,68,68,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] border border-red-400/40 transition-all active:scale-[0.98] inline-flex items-center gap-2 cursor-pointer"
               onClick={abortMission}
               disabled={aborting}
               aria-label="Abort Mission"
@@ -331,7 +378,7 @@ export default function FloodMissionGCS() {
           ) : (
             <button
               type="button"
-              className="bg-[#F97316] hover:bg-[#EA580C] text-[#09090B] font-sans font-semibold text-xs px-4 h-8 rounded-[3px] shadow-none border-none transition-colors inline-flex items-center gap-2 cursor-pointer"
+              className="bg-[#F97316] hover:bg-[#EA580C] text-[#09090B] font-sans font-semibold text-xs px-4 h-8 rounded-[8px] shadow-[0_2px_14px_rgba(249,115,22,0.35),inset_0_1px_0_rgba(255,255,255,0.3)] border border-orange-400/40 transition-all active:scale-[0.98] inline-flex items-center gap-2 cursor-pointer"
               onClick={startMission}
               disabled={busy}
               aria-label="Start Mission"
